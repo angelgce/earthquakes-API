@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Terremotos</title>
+    <meta charset="UTF-8">
+    <link href="style.css" rel="stylesheet">
+
+    <body>
+        <div class="box">
+
+            <button type="submit" onclick="traer()">Mostrar Terremos</button>
+        </div>
+        <script>
+            var contenido = document.querySelector(".box")
+            var outStr =
+                "<table><tr>" +
+                "<th>Lugar</th>" +
+                "<th>Magnitud</th>" +
+                "<th>cordenadas</th>" +
+                "<th>Hora local</th>" +
+                "</tr>";
+
+            var hoy = new window.Date().toUTCString();
+            var fecha = new window.Date();
+
+            function convertToGmt(pdate) {
+                var newDate = new Date(pdate);
+                return (newDate.getUTCHours() - 1 < 10 ? "0" + newDate.getUTCHours() - 1 : newDate.getUTCHours() - 1) + ":" + (newDate.getUTCMinutes() < 10 ? "0" + newDate.getUTCMinutes() : newDate.getUTCMinutes()) + ":" + (newDate.getUTCSeconds() < 10 ? "0" + newDate.getUTCSeconds() : newDate.getUTCSeconds());
+            }
+
+            function convertEpoch(utcSeconds) {
+                var myDate = new Date(utcSeconds);
+                return (myDate.getFullYear() + "/" + myDate.getMonth() + "/" + myDate.getDate() + "/" + myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds());
+            }
+
+            function traer() {
+
+                var link = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=" + fecha.getFullYear() + "-" + (fecha.getMonth() + 1) + "-" + fecha.getDate() + "%20" + convertToGmt(hoy);
+                console.log(link);
+                fetch(link)
+                    .then(res => res.json())
+                    .then(data => {
+                        for (var i = 0; i < data.features.length; i++) {
+                            if (data.features[i].properties.type === "earthquake") {
+
+                                outStr += ` <tr> 
+                                    <td> ${data.features[i].properties.place}</td>
+                                    <td>${data.features[i].properties.mag}</td>
+                                    <td>${data.features[i].geometry.coordinates['0']} ,${data.features[i].geometry.coordinates['1']} , ${data.features[i].geometry.coordinates['2']}</td>
+                                    <td>${convertEpoch(data.features[i].properties.time)}</td>
+                                </tr>`;
+                            }
+                        }
+                        outStr += "</table></br>"
+                        contenido.innerHTML = outStr;
+                    })
+
+            }
+        </script>
+    </body>
+
+</html>
